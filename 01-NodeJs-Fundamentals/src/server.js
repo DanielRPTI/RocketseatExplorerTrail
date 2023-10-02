@@ -1,5 +1,8 @@
 import http from 'node:http'
-//requisições em http 
+import { randomUUID } from 'node:crypto'
+import { json } from './middlewares/json.js'
+import { Database } from './database.js'
+/*requisições em http 
 // METHODOS 
 // URL
 // MEHTODO + URL = GET/USERS
@@ -18,26 +21,34 @@ import http from 'node:http'
 //HTTP STATUS CODE => 100 - 199 (information response)
 // 200 - 299 - successful responses
 // 300 - 299 redirect responses | 400 - 499 Client error response 
-// 500 - 599 Server error responses
+ 500 - 599 Server error responses */
 
-const users  = []
+//UUID => Unique universal ID 
 
-const server = http.createServer((req, res) => {
+const database = new Database()
+
+const server = http.createServer(async (req, res) => {
   const {method, url} = req
 
+  await json(req, res)
+
   if ( method === 'GET' && url === '/users'){
-    return res
+    const users = database.select('users')
+
+    return res   
     .setHeader('Content-type', 'application/json')
     .end(JSON.stringify(users))
   }
 
   if ( method === 'POST' && url === '/users'){
-    users.push({
-      id: 1,
-      nome: 'Daniel rosa',
-      email:'drjunim@rocketeat.com.br'
-    })
-    return res.status(201).end("Criação de users")
+    const {name, email} = req.body
+    const user = {
+      id: randomUUID(),
+      name,
+      email,
+    }
+    database.insert('users',  user)
+    return res.writeHead(201).end()
   }
 
   return res.writeHead(404).end()
