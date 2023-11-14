@@ -1,8 +1,8 @@
 import 'dotenv/config'
 import { knex as setupKnex, Knex } from 'knex'
-import { env } from './index'
+import { env } from './env'
 
-if (!process.env.DATABASE_URL) {
+if (!env.DATABASE_URL) {
   throw new Error('DATABASE_URL env not found.')
 }
 
