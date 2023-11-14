@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { randomUUID } from 'crypto'
 import { knex } from '../database'
 
+// Cookies <-> Formas da gente manter contexto entre reqs
+
 export async function transactionRoutes(app: FastifyInstance) {
   app.get('/', async () => {
     const transactions = await knex('transactions').select()
@@ -37,13 +39,26 @@ export async function transactionRoutes(app: FastifyInstance) {
       amount: z.number(),
       type: z.enum(['credit', 'debit']),
     })
+
     const { title, amount, type } = createTransactionBodySchema.parse(
       request.body,
     )
+
+    let sessionId = request.cookies.sessionId
+
+    if (!sessionId) {
+      sessionId = randomUUID()
+
+      reply.cookie('sessionId', sessionId, {
+        path: '/',
+        maxAge: 1000 * 60 * 60 * 24 * 7, // seven days
+      })
+    }
     await knex('transactions').insert({
       id: randomUUID(),
       title,
       amount: type === 'credit' ? amount : amount * -1,
+      session_id: sessionId,
     })
 
     return reply.status(201).send()
