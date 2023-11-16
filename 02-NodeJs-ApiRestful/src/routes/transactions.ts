@@ -6,10 +6,14 @@ import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 
 // Cookies <-> Formas da gente manter contexto entre reqs
 
+// Testes : Unitatios : teste de uma unica unidade da aplicação Ex.Uma função que formata a data de algo.
+// integração: Comunicação entre duas ou mais unidades
+// e2e - ponta a ponta: Simula um usuário operando na aplicação{
+// front-end : Abre a pagina de login , digite o texto email@dddd.com.br no campo id email
+// back-end: chamadas HTTP , websockets. Testa tudo na aplicação}
+
+// Piramide de testes : E2E (não depende de nenhuma tecnologia, não depende de arquitetura )
 export async function transactionRoutes(app: FastifyInstance) {
-  app.addHook('preHandler', async (request, reply) => {
-    console.log(`[${request.method}] ${request.url}`)
-  })
   app.get(
     '/',
     { preHandler: [checkSessionIdExists] },
@@ -65,9 +69,9 @@ export async function transactionRoutes(app: FastifyInstance) {
     const { title, amount, type } = createTransactionBodySchema.parse(
       request.body,
     )
-
+    // cria uma let que recebe o cookie da sessionId gerada para validação
     let sessionId = request.cookies.sessionId
-
+    // se não ouver um sessionId ele cria um random uuid e manda uma resposta pro cookie recebendo um sessionId com expiração de 7 dias
     if (!sessionId) {
       sessionId = randomUUID()
 
@@ -76,6 +80,7 @@ export async function transactionRoutes(app: FastifyInstance) {
         maxAge: 1000 * 60 * 60 * 24 * 7, // seven days
       })
     }
+    // Cria a transação apartir de uma sessionId do usuario usando cookies
     await knex('transactions').insert({
       id: randomUUID(),
       title,
