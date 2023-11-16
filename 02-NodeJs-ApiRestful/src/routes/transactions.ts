@@ -2,11 +2,14 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
 import { knex } from '../database'
-import { checkSessionIdExists } from '../middleware/check-session-id-exists'
+import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 
 // Cookies <-> Formas da gente manter contexto entre reqs
 
 export async function transactionRoutes(app: FastifyInstance) {
+  app.addHook('preHandler', async (request, reply) => {
+    console.log(`[${request.method}] ${request.url}`)
+  })
   app.get(
     '/',
     { preHandler: [checkSessionIdExists] },
