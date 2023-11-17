@@ -1,8 +1,7 @@
-import { it, beforeAll, afterAll, describe } from 'vitest'
+import { it, beforeAll, afterAll, describe, expect } from 'vitest'
 import request from 'supertest'
 import { app } from '../src/app'
-import { listenerCount } from 'process'
-import console from 'console'
+import { randomUUID } from 'crypto'
 
 describe('Transactions routes', () => {
   beforeAll(async () => {
@@ -12,7 +11,7 @@ describe('Transactions routes', () => {
   afterAll(async () => {
     await app.close()
   })
-  it.only('should be able to creat a new transaction', async () => {
+  it('should be able to creat a new transaction', async () => {
     await request(app.server)
       .post('/transactions')
       .send({
@@ -23,7 +22,7 @@ describe('Transactions routes', () => {
       .expect(201)
   })
 
-  it('Should be able to list all transactions', () => {
+  it.only('Should be able to list all transactions', async () => {
     const createTransactionResponse = await request(app.server)
       .post('/transactions')
       .send({
@@ -39,6 +38,12 @@ describe('Transactions routes', () => {
       .set('Cookie', cookies)
       .expect(200)
 
-    console.log(listTransactionResponse.body)
+    // verifica se está recebendo um array com objetos
+    expect(listTransactionResponse.body.transactions).toEqual([
+      expect.objectContaining({
+        title: 'New Transaction',
+        amount: 5000,
+      }),
+    ])
   })
 })
